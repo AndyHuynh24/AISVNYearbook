@@ -1,0 +1,519 @@
+<!doctype html>
+<!--[if lt IE 7 ]> <html lang="en" class="ie6"> <![endif]-->
+<!--[if IE 7 ]>    <html lang="en" class="ie7"> <![endif]-->
+<!--[if IE 8 ]>    <html lang="en" class="ie8"> <![endif]-->
+<!--[if IE 9 ]>    <html lang="en" class="ie9"> <![endif]-->
+<!--[if !IE]><!--> <html lang="en"> <!--<![endif]-->
+<head>
+<script type="text/javascript" src="Files1/files2/extras/jquery.min.1.7.js"></script>
+<script type="text/javascript" src="Files1/files2/extras/jquery-ui-1.8.20.custom.min.js"></script>
+<script type="text/javascript" src="Files1/files2/extras/jquery.mousewheel.min.js"></script>
+<script type="text/javascript" src="Files1/files2/extras/modernizr.2.5.3.min.js"></script>
+<script type="text/javascript" src="Files1/files2/lib/hash.js"></script>
+<script src="https://kit.fontawesome.com/3e1b035c34.js" crossorigin="anonymous"></script>
+
+</head>
+<body>
+<div id="loading-screen">
+	<p>Loading... (please wait)<br><br>To <b>skip</b> pages, please use the <b>menu button</b>, don't spam the next button<br>
+		<br>Click <b>download button</b> on navigation bar to download the yearbook pdf file<br>
+		<br>Please use <b>computer</b> for best experience<br>
+		<br>
+		<br><small>*In case you get bugs due to spamming the next button, reload the page</small>
+		<br><small>*Delete web cache or use igcognito tab if you have logged in this website before its official release</small><br></p>
+	<img src="pageimg/frontcover.jpg" class="loadimg">
+	<img src="pageimg/page1.jpg" class="loadimg">
+	<img src="pageimg/page2.jpg" class="loadimg">
+	<img src="pageimg/page3.jpg"  class="loadimg">
+	<img src="pageimg/page4.jpg"  class="loadimg">
+	<img src="pageimg/page6.jpg"  class="loadimg">
+	<img src="pageimg/page7.jpg"  class="loadimg">
+	<img src="pageimg/page8.jpg"  class="loadimg">
+	<img src="pageimg/page9.jpg"  class="loadimg">
+	<img src="pageimg/page10.jpg"  class="loadimg">
+	<script>
+
+		const images = [...document.querySelectorAll("img")];
+	
+		const proms=images.map(im=>new Promise(res=>
+		im.onload=()=>res([im.width,im.height])
+		))
+	
+		// list all image widths and heights _after_ the images have loaded:
+		Promise.all(proms).then(data=>{
+		console.log("The images have loaded at last!\nHere are their dimensions (width,height):");
+		console.log(data);
+		})
+	
+		// Everything is set up here.
+		// Except: the images don't have their `src` attributes yet! 
+		// These are added now and the action will unfold:
+	
+		images.forEach((im,i)=>im.src=`https://picsum.photos/id/${i+234}/200/100`);
+	</script>
+</div>
+<div  id="librarybg" class="bgimg"></div>
+<div  id="seniorlougebg" class="bgimg"></div>
+<div  id="graduationbg" class="bgimg"></div>
+<div  id="frontofficebg" class="bgimg"></div>
+
+
+<div class="navbar">
+	<button class="navbtn" class="share" id="menuBtn"><i class="fa-solid fa-bars"></i>
+		<div class="dropdown">
+			<a href="yearbook#page/1">First page</a>
+			<a href="yearbook#page/6">Writes up</a>
+			<a href="yearbook#page/7">Photos & quotes</a>
+			<a href="yearbook#page/32">Superlatives</a>
+			<a href="yearbook#page/34">Group photos</a>
+			<a href="yearbook#page/66">Event recap</a>
+			<a href="yearbook#page/82">Signature</a>
+			<a href="yearbook#page/84">Last page</a>
+		</div>
+	</button>
+	<button class="navbtn" id="backButton"><i class="fa-solid fa-arrow-left"></i></button>
+	<input type="text" id="pageNumber" min="1" placeholder="1">
+	<button class="navbtn" id="nextButton"><i class="fa-solid fa-arrow-right"></i></button>
+	<a class="navbtn" href="pics/yearbookclassof2024.pdf" download="yearbookclassof2024"><i class="fa-solid fa-download"></i></a>
+</div>
+<div id="canvas">
+	<div id="book-zoom">
+		<div class="sj-book">
+			<div depth="5" class="hard p1"> <div class="side"></div> </div>
+			<div id="secondpage" depth="5" class=" front-side"> <div class="depth"></div> </div>
+			<div class="own-size">
+				<div class="gradient"></div>
+			</div>
+			<div class="own-size even">
+				<div class="gradient"></div>
+			</div>
+			<div class=" hard fixed back-side p85"> <div class="depth"></div> </div>
+			<div class="hard p86"></div>
+		</div>
+	</div>
+	<!-- <div id="slider-bar" class="turnjs-slider">
+		<div id="slider"></div>
+	</div> -->
+</div>
+
+
+<script type="text/javascript">
+
+function loadApp() {
+	var screentypescale = 1;
+
+	var w = window.innerWidth;
+	var h = window.innerHeight;
+	 
+	if ((w<1150)&&((w/h < 2/1.41)) || screentype=='single'){
+		screentype = 'single';
+		screentypescale = 0.5;
+		document.querySelector('.p85').classList.remove('hard');
+		document.querySelector('#secondpage').classList.remove('hard');
+	}
+
+	console.log("height: ", h, "px");
+	console.log("width: ", w, "px");
+	
+	
+	if (screentype=="single"){
+		document.querySelector('.navbar').style.width="90vw";
+		if(w/h>1/1.41){
+			adjustw=(((h*0.95)*2)/1.41)*screentypescale;
+			adjusth=(h*0.95);
+			console.log("book width:"+adjustw)
+			console.log(adjusth)
+			document.documentElement.style.setProperty("--bookh", adjusth.toString()+"px");
+			document.documentElement.style.setProperty("--bookw", adjustw.toString()+"px");
+			document.documentElement.style.setProperty("--bookwhalf", (adjustw/2).toString()+"px");
+			insidew = (adjustw/2)-20;
+			insideh = adjusth-20;
+			document.documentElement.style.setProperty("--insidew", insidew.toString()+"px");
+			document.documentElement.style.setProperty("--insideh", insideh.toString()+"px");
+			document.documentElement.style.setProperty("--depthw", (insidew*(16/460)).toString()+"px");
+			document.documentElement.style.setProperty("--depthh", (insideh+(insideh*(15/657))).toString()+"px");
+			document.documentElement.style.setProperty("--depthtop", (insideh*(2/657)).toString()+"px");
+		}
+		else{
+			adjustw=(w*0.95);
+			adjusth=((w*0.95)*(1.41));
+			document.documentElement.style.setProperty("--bookh", adjusth.toString()+"px");
+			document.documentElement.style.setProperty("--bookw", adjustw.toString()+"px");
+			document.documentElement.style.setProperty("--bookwhalf", (adjustw/2).toString()+"px");
+			insidew = (adjustw/2)-20;
+			insideh = adjusth-20;
+			document.documentElement.style.setProperty("--insidew", insidew.toString()+"px");
+			document.documentElement.style.setProperty("--insideh", insideh.toString()+"px");
+			document.documentElement.style.setProperty("--depthw", (((w*0.8)/2)*(16/480)).toString()+"px");
+			document.documentElement.style.setProperty("--depthh", (insideh+(insideh*(8/657))).toString()+"px");
+			document.documentElement.style.setProperty("--depthtop", (insideh*(7/657)).toString()+"px");
+		}
+	}
+
+	if ((w/h > 2/1.41)) {
+		adjustw=(((h*0.95)*2)/1.41)*screentypescale;
+		adjusth=(h*0.95);
+		console.log("book width:"+adjustw)
+		document.documentElement.style.setProperty("--bookh", adjusth.toString()+"px");
+		document.documentElement.style.setProperty("--bookw", adjustw.toString()+"px");
+		document.documentElement.style.setProperty("--bookwhalf", (adjustw/2).toString()+"px");
+		insidew = (adjustw/2)-20;
+		insideh = adjusth-20;
+		document.documentElement.style.setProperty("--insidew", insidew.toString()+"px");
+		document.documentElement.style.setProperty("--insideh", insideh.toString()+"px");
+		document.documentElement.style.setProperty("--depthw", (insidew*(16/460)).toString()+"px");
+		document.documentElement.style.setProperty("--depthh", (insideh+(insideh*(depthscaleh/657))).toString()+"px");
+		document.documentElement.style.setProperty("--depthtop", (insideh*(depthscaletop/657)).toString()+"px");
+		if (adjustw<1000 && adjustw>910){
+			shiftvalue = 21;
+			depthscaleh=10;
+			depthscaletop = 6;
+		}
+		else if (adjustw<1100 && adjustw>1000){
+			shiftvalue = 20;
+			depthscaleh=12;
+			depthscaletop = 5;
+		}
+		else if (adjustw>1100){
+			shiftvalue = 20;
+			depthscaleh=15;
+			depthscaletop = 3;
+		}
+		else if (adjustw>800 && adjustw<910){
+			shiftvalue = 22;
+			depthscaleh=7;
+			depthscaletop = 9;
+		}
+		else if (adjustw>720 && adjustw<800){
+			shiftvalue = 24;
+			depthscaleh=8;
+			depthscaletop = 10;
+		}
+		else if (adjustw>640 && adjustw<720){
+			shiftvalue = 25.5;
+			depthscaleh=8;
+			depthscaletop = 11;
+		}
+		else if (adjustw>560&&adjustw<640) {
+			shiftvalue = 26;
+			depthscaleh=6;
+			depthscaletop = 15;
+		}
+		else if (adjustw>500&&adjustw<560) {
+			shiftvalue = 27;
+			depthscaleh=7;
+			depthscaletop = 17;
+		}
+		else if (adjustw<500){
+			screentype = 'single';
+		}
+	}
+	else if ((w/h < 2/1.41) && screentype=="double"){
+		adjustw=(w*0.95)*screentypescale;
+		adjusth=((w*0.95)*(1.41)/2);
+		document.documentElement.style.setProperty("--bookh", adjusth.toString()+"px");
+		document.documentElement.style.setProperty("--bookw", adjustw.toString()+"px");
+		document.documentElement.style.setProperty("--bookwhalf", (adjustw/2).toString()+"px");
+		insidew = (adjustw/2)-20;
+		insideh = adjusth-20;
+		document.documentElement.style.setProperty("--insidew", insidew.toString()+"px");
+		document.documentElement.style.setProperty("--insideh", insideh.toString()+"px");
+		document.documentElement.style.setProperty("--depthw", (((w*0.8)/2)*(16/480)).toString()+"px");
+		document.documentElement.style.setProperty("--depthh", (insideh+(insideh*(8/657))).toString()+"px");
+		document.documentElement.style.setProperty("--depthtop", (insideh*(7/657)).toString()+"px");
+	}
+	
+	function isMobileDevice() {
+		return /iPhone|iPad|iPod|Android/.test(navigator.userAgent);
+	}
+
+	var livevideos = document.querySelectorAll('.livevideo');
+	if (w>400){
+		var flipbook = $('.sj-book');
+
+		// Check if the CSS was already loaded
+		
+		if (flipbook.width()==0 || flipbook.height()==0) {
+			setTimeout(loadApp, 10);
+			return;
+		}
+
+		// Mousewheel
+
+		$('#book-zoom').mousewheel(function(event, delta, deltaX, deltaY) {
+
+			var data = $(this).data(),
+				step = 30,
+				flipbook = $('.sj-book'),
+				actualPos = $('#slider').slider('value')*step;
+
+			if (typeof(data.scrollX)==='undefined') {
+				data.scrollX = actualPos;
+				data.scrollPage = flipbook.turn('page');
+			}
+
+			data.scrollX = Math.min($( "#slider" ).slider('option', 'max')*step,
+				Math.max(0, data.scrollX + deltaX));
+
+			var actualView = Math.round(data.scrollX/step),
+				page = Math.min(flipbook.turn('pages'), Math.max(1, actualView*2 - 2));
+
+			if ($.inArray(data.scrollPage, flipbook.turn('view', page))==-1) {
+				data.scrollPage = page;
+				flipbook.turn('page', page);
+			}
+
+			if (data.scrollTimer)
+				clearInterval(data.scrollTimer);
+			
+			data.scrollTimer = setTimeout(function(){
+				data.scrollX = undefined;
+				data.scrollPage = undefined;
+				data.scrollTimer = undefined;
+			}, 1000);
+
+		});
+
+		// Slider
+
+		$( "#slider" ).slider({
+			min: 1,
+			max: 86,
+
+			start: function(event, ui) {
+
+				if (!window._thumbPreview) {
+					_thumbPreview = $('<div />', {'class': 'thumbnail'}).html('<div></div>');
+					setPreview(ui.value);
+					_thumbPreview.appendTo($(ui.handle));
+				} else
+					setPreview(ui.value);
+
+				moveBar(false);
+
+			},
+
+			slide: function(event, ui) {
+
+				setPreview(ui.value);
+
+			},
+
+			stop: function() {
+
+				if (window._thumbPreview)
+					_thumbPreview.removeClass('show');
+				
+				$('.sj-book').turn('page', Math.max(1, $(this).slider('value')*2 - 2));
+
+			}
+		});
+
+
+		// URIs
+		
+		Hash.on('^page\/([0-9]*)$', {
+			yep: function(path, parts) {
+
+				var page = parts[1];
+
+				if (page!==undefined) {
+					if ($('.sj-book').turn('is'))
+						$('.sj-book').turn('page', page);
+				}
+
+			},
+			nop: function(path) {
+
+				if ($('.sj-book').turn('is'))
+					$('.sj-book').turn('page', 1);
+			}
+		});
+
+		// Arrows
+
+		$(document).keydown(function(e){
+
+			var previous = 37, next = 39;
+
+			switch (e.keyCode) {
+				case previous:
+					$('.sj-book').turn('previous');
+
+				break;
+				case next:
+					
+				$('.sj-book').turn('next');
+
+				break;
+			}
+
+		});
+
+		//navigation bar
+		document.getElementById('backButton').addEventListener('click', () => {
+            // Add functionality for back button
+            $('.sj-book').turn('previous');
+        });
+
+        document.getElementById('nextButton').addEventListener('click', () => {
+            // Add functionality for next button
+            $('.sj-book').turn('next');
+        });
+		const pageNumberInput = document.getElementById('pageNumber');
+        pageNumberInput.addEventListener('change', (event) => {
+            // Add functionality for page number input
+			$('.sj-book').turn('page', (Number(event.target.value)+2))
+            console.log('Page number changed to', event.target.value);
+        });
+
+		// Flipbook
+
+		flipbook.turn({
+			display: screentype,
+			elevation: 50,
+			autoCenter: true,
+			gradients: true,
+			duration: 1000,
+			pages: 86,
+			when: {
+				turning: function(e, page, view) {
+					updatePage(page);
+					
+					var book = $(this),
+						currentPage = book.turn('page'),
+						pages = book.turn('pages');
+
+					if (currentPage>3 && currentPage<pages-3) {
+					
+						if (page==1) {
+							book.turn('page', 2).turn('stop').turn('page', page);
+							e.preventDefault();
+							return;
+						} else if (page==pages) {
+							book.turn('page', pages-1).turn('stop').turn('page', page);
+							e.preventDefault();
+							return;
+						}
+					} else if (page>3 && page<pages-3) {
+						if (currentPage==1) {
+							book.turn('page', 2).turn('stop').turn('page', page);
+							e.preventDefault();
+							return;
+						} else if (currentPage==pages) {
+							book.turn('page', pages-1).turn('stop').turn('page', page);
+							e.preventDefault();
+							return;
+						}
+					}
+
+					updateDepth(book, page);
+					console.log(page)
+					if((6<page<32)){
+						turning(page);
+					}
+					
+					if (page>=2)
+						$('.sj-book .p2').addClass('fixed');
+					else
+						$('.sj-book .p2').removeClass('fixed');
+
+					if (page<book.turn('pages'))
+						$('.sj-book .p85').addClass('fixed');
+					else
+						$('.sj-book .p85').removeClass('fixed');
+
+					Hash.go('page/'+page).update();
+				
+				},
+
+				turned: function(e, page, view) {
+					var book = $(this);
+
+					console.log("page: "+ page);
+					
+					if (page > 1 && page <= 5){
+						var background = document.body.querySelector('#frontofficebg').style.backgroundImage = "url('../pics/library1.jpg')";
+					} 
+					else if (page == 1){
+						var background = document.body.querySelector('#frontofficebg').style.backgroundImage = "url('../pics/frontoffice.jpg')";
+					} 
+					else if (page>= 32){
+						var background = document.body.querySelector('#frontofficebg').style.backgroundImage = "url('../pics/graduation2.jpg')";
+					}
+					else if (page>=6){
+						var background = document.body.querySelector('#frontofficebg').style.backgroundImage = "url('../pics/seniorlouge2.jpg')";
+					}
+					
+					updateDepth(book);
+					
+					$('#slider').slider('value', getViewNumber(book, page));
+
+					book.turn('center');
+					console.log('newpage');
+					if((6<page<32)){
+						reset_animation(page);
+					}
+				},
+
+				start: function(e, pageObj) {
+			
+					moveBar(true);
+
+				},
+
+				end: function(e, pageObj) {
+				
+					var book = $(this);
+
+					updateDepth(book);
+
+					setTimeout(function() {
+						
+						$('#slider').slider('value', getViewNumber(book));
+
+					}, 1);
+
+					moveBar(false);
+
+
+				},
+
+				missing: function (e, pages) {
+
+					for (var i = 0; i < pages.length; i++) {
+						addPage(pages[i], $(this));
+					}
+				}
+			}
+		}).turn('page', 1);
+
+
+		$('#slider').slider('option', 'max', numberOfViews(flipbook));
+
+		flipbook.addClass('animated');
+
+		// Show canvas
+
+		$('#canvas').css({visibility: ''});
+	}
+}
+
+// Hide canvas
+
+$('#canvas').css({visibility: 'hidden'});
+
+// Load turn.js
+
+yepnope({
+	test : Modernizr.csstransforms,
+	yep: ['Files1/files2/lib/turn.min.js'],
+	nope: ['Files1/files2/lib/turn.html4.min.js', 'css/jquery.ui.html4.css', 'css/yearbook-html4.css'],
+	both: ['js/yearbook.js', 'css/jquery.ui.css', 'css/yearbook.css'],
+	complete: loadApp
+});
+
+</script>
+
+</body>
+</html>
